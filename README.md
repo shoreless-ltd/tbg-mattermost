@@ -1,10 +1,18 @@
-# The Bug Genie GitLab OAuth2 authentication module
+# The Bug Genie Mattermost integration module
 
 ## Description
 
-This is an authentication  module for [The Bug Genie](https://github.com/thebuggenie/thebuggenie)
-issue tracker. It allows authenticating The Bug Genie users against GitLab as OAuth2 provider.  
+This is an integration module for [The Bug Genie](https://github.com/thebuggenie/thebuggenie)
+issue tracker. It allows posting information about TBG events to your
+[Mattermost](https://about.mattermost.com) team channels.  
 
+You can setup the integration on a per-project basis. The following events are supported at
+the time being:  
+
+  * Creation of an issue
+  * Commenting to an issue
+  * Creation of new Releases
+  
 
 ## Requirements
 
