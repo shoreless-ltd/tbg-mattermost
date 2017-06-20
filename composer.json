@@ -1,0 +1,31 @@
+{
+    "name": "shoreless/mattermost",
+    "description": "Allows posting issue status updates to Mattermost channels.",
+    "type": "library",
+    "license": "MPL 2.0",
+    "authors": [
+        {
+            "name": "Andreas W. Wylach",
+            "email": "andreas.wylach@shoreless.limited",
+            "homepage": "https://shoreless.limited",
+            "role": "Developer"
+        },
+        {
+            "name": "Mario Steinitz",
+            "email": "mario.steinitz@shoreless.limited",
+            "homepage": "https://shoreless.limited",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "contact@shoreless.limited",
+        "issues": "https://github.com/shoreless-ltd/tbg-mattermost/issues",
+        "source": "https://github.com/shoreless-ltd/tbg-mattermost"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "thibaud-dauce/mattermost-php": "^1.0",
+        "league/html-to-markdown": "^4.4"
+    }
+}

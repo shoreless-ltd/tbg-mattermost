@@ -1,0 +1,10 @@
+configure_mattermost_settings:
+  route: /configure/mattermost
+  action: configureMattermostSettings
+  parameters:
+    config_module: core
+    section: 15
+
+configure_mattermost_project_settings:
+  route: /:project_key/module/mattermost/settings
+  action: configureProjectSettings
