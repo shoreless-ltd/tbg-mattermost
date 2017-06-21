@@ -75,8 +75,7 @@ guides in the [Mattermost Developer Docs](https://docs.mattermost.com/developer/
 ### Planned Features
 
   * Add further issue fields to issue creation notice.
-  * Add translation support for posting to Mattermost channels in a different
-    language than en_US.
+
 
 ### Suggested Features
 

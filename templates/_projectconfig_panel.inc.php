@@ -51,6 +51,23 @@
                         <td class="config_explanation" colspan="2"><?= __('All messages will be posted to this channel.'); ?></td>
                     </tr>
                     <tr>
+                        <td><label for="language"><?= __('Posting language'); ?></label></td>
+                        <td>
+                            <?php if ($access_level == \thebuggenie\core\framework\Settings::ACCESS_FULL): ?>
+                                <select name="<?= \thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_CHANNEL_LANGUAGE; ?>" id="language" style="width: 300px;">
+                                <?php foreach ($languages as $lang_code => $lang_desc): ?>
+                                    <option value="<?= $lang_code; ?>"<?php if ($module->getPostLanguage($project->getID()) == $lang_code): ?> selected<?php endif; ?>><?php echo $lang_desc; ?></option>
+                                <?php endforeach; ?>
+                                </select>
+                            <?php else: ?>
+                                <?= $languages[$module->getPostLanguage($project->getID())]; ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="config_explanation" colspan="2"><?= __('This is the language that will be used to post to Mattermost. If you have project stakeholders within the channel that speak a different language than your default The Bug Genie language, you may choose here from the available translations.'); ?></td>
+                    </tr>
+                    <tr>
                         <td><label for="mattermost_project_post_as_name"><?= __('Bot name'); ?></label></td>
                         <td>
                             <?php if ($access_level == \thebuggenie\core\framework\Settings::ACCESS_FULL): ?>

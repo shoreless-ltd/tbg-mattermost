@@ -125,15 +125,15 @@
          * @return I18n
          */
         protected function _getI18n($language = 'en_US') {
-            if (isset(self::$_i18n[$language])) {
-                return self::$_i18n[$language];
-            }
-
             $i18n = framework\Context::getI18n();
-            if ( ! $i18n instanceof I18n || $i18n->getCurrentLanguage() != $language) {
+
+            if ( ! $i18n instanceof I18n) {
                 $i18n = new I18n($language);
             }
-            self::$_i18n[$language] = $i18n;
+            if ($i18n->getCurrentLanguage() != $language) {
+                $i18n->setLanguage($language);
+            }
+            $i18n->loadModuleStrings($this->_name);
 
             return $i18n;
         }
@@ -191,8 +191,8 @@
 
             // Compose message.
             $attachment = (new MattermostAttachment())
-                ->fallback($i18n->__('New issue created'))
-                ->title('[' . $issueNo . '] ' . $issue->getTitle(), $issueLink)
+                ->fallback(html_entity_decode($i18n->__('New issue created')))
+                ->title(html_entity_decode('[' . $issueNo . '] ' . $issue->getTitle()), $issueLink)
                 ->text($issueDescription)
                 ->success();
 
@@ -361,8 +361,8 @@
 
             // Compose message.
             $attachment = (new MattermostAttachment())
-                ->fallback($i18n->__('Issue changed'))
-                ->title($i18n->__('Changes'), $issueLink)
+                ->fallback(html_entity_decode($i18n->__('Issue changed')))
+                ->title(html_entity_decode($i18n->__('Changes')), $issueLink)
                 ->text($text)
                 ->color('#66f');
 
@@ -440,8 +440,8 @@
 
             // Compose message.
             $attachment = (new MattermostAttachment())
-                ->fallback($i18n->__('New comment'))
-                ->title($i18n->__('Comment #%comment_no', ['%comment_no' => $comment->getCommentNumber()]), $commentLink)
+                ->fallback(html_entity_decode($i18n->__('New comment')))
+                ->title(html_entity_decode($i18n->__('Comment #%comment_no', ['%comment_no' => $comment->getCommentNumber()])), $commentLink)
                 ->text($commentContent)
                 ->color('#666');
 
@@ -574,7 +574,7 @@
 
         public function listen_projectconfig_panel(framework\Event $event)
         {
-            include_component('mattermost/projectconfig_panel', array('selected_tab' => $event->getParameter('selected_tab'), 'access_level' => $event->getParameter('access_level'), 'project' => $event->getParameter('project'), 'module' => $this));
+            include_component('mattermost/projectconfig_panel', array('selected_tab' => $event->getParameter('selected_tab'), 'access_level' => $event->getParameter('access_level'), 'project' => $event->getParameter('project'), 'module' => $this, 'languages' => framework\I18n::getLanguages()));
         }
 
         protected function _install($scope)

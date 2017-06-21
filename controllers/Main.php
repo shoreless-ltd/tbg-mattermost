@@ -34,6 +34,7 @@ class Main extends framework\Action {
             $module->setWebhookUrl($request[\thebuggenie\modules\mattermost\Mattermost::SETTING_WEBHOOK_URL], $project_id);
             $module->setChannelName($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_CHANNEL_NAME]);
             $module->setPostAsName($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_POST_AS_NAME]);
+            $module->setPostLanguage($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_CHANNEL_LANGUAGE]);
             $module->setProjectIntegrationEnabled($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_INTEGRATION_ENABLED]);
             $module->doesPostOnNewIssues($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_POST_ON_NEW_ISSUES]);
             $module->doesPostOnNewReleases($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_POST_ON_NEW_RELEASES]);
