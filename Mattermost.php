@@ -235,7 +235,7 @@
             $project_id = $issue->getProjectID();
 
             // Whether posting to Mattermost has been enabled.
-            if ( ! ($issue instanceof Issue && $this->isProjectIntegrationEnabled($project_id) && ($this->doesPostOnChangeIssues($project_id) || $this->doesPostOnNewComments($project_id)))) {
+            if ( ! ($issue instanceof Issue && $this->isProjectIntegrationEnabled($project_id) && $this->doesPostOnChangeIssues($project_id))) {
                 return;
             }
             
@@ -259,130 +259,110 @@
             $issueLink = framework\Context::getRouting()->generate('viewissue', ['project_key' => $issue->getProject()->getKey(), 'issue_no' => $issue->getIssueNo()], false);
             $text = '';
 
-            $comment = $event->getParameter('comment');
-            $commentContent = '';
-            $commentLink = '';
-            if ($this->doesPostOnNewComments($project_id) && ! empty($comment) && $comment instanceof Comment) {
-                $commentContent = $converter->convert(trim($comment->getParsedContent()));
-                if ( ! empty($settings['truncate_text'])) {
-                    $commentContent = \tbg_truncateText($commentContent, $settings['truncate_text']);
-                }
-                $commentLink = $issueLink . '#comment_' . $comment->getID();
-                if ( ! empty($commentContent)) {
-                    $text = $commentContent;
+            $log_items = $event->getParameter('log_items');
+            $changes = [];
+            if ( ! empty($log_items)) {
+                foreach($log_items as $item) {
+                    switch ($item->getChangeType())
+                    {
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CREATED:
+                        case \thebuggenie\core\entities\tables\Log::LOG_COMMENT:
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CLOSE:
+                            $changes[] = $i18n->__('Issue closed');
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REOPEN:
+                            $changes[] = $i18n->__('Issue reopened');
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_UPDATE:
+                            $changes[] = $converter->convert($item->getText());
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_BUG_TYPE:
+                            $changes[] = $i18n->__('Triaged bug type: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_LIKELIHOOD:
+                            $changes[] = $i18n->__('Triaged likelihood: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_EFFECT:
+                            $changes[] = $i18n->__('Triaged effect: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_CALCULATED:
+                            $changes[] = $i18n->__('Calculated user pain: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CATEGORY:
+                            $changes[] = $i18n->__('Category changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CUSTOMFIELD_CHANGED:
+                            $changes[] = $i18n->__('Custom field changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_STATUS:
+                            $changes[] = $i18n->__('Status changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REPRODUCABILITY:
+                            $changes[] = $i18n->__('Reproducability changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PRIORITY:
+                            $changes[] = $i18n->__('Priority changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_SEVERITY:
+                            $changes[] = $i18n->__('Severity changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_RESOLUTION:
+                            $changes[] = $i18n->__('Resolution changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PERCENT:
+                            $changes[] = $i18n->__('Percent completed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_MILESTONE:
+                            $changes[] = $i18n->__('Target milestone changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ISSUETYPE:
+                            $changes[] = $i18n->__('Issue type changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_ESTIMATED:
+                            $changes[] = $i18n->__('Estimation changed: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_SPENT:
+                            $changes[] = $i18n->__('Time spent: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ASSIGNED:
+                            $changes[] = $i18n->__('Assignee changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_OWNED:
+                            $changes[] = $i18n->__('Owner changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_POSTED:
+                            $changes[] = $i18n->__('Posted by changed: %text', array('%text' => $item->getText()));
+                            break;
+                        default:
+                            if (!$item->getText())
+                            {
+                                $changes[] = $i18n->__('Issue updated');
+                            }
+                            else
+                            {
+                                $changes[] = $converter->convert($item->getText());
+                            }
+                            break;
+                    }
                 }
             }
 
-            if ($this->doesPostOnChangeIssues($project_id)) {
-                $log_items = $event->getParameter('log_items');
-                $changes = [];
-                if ( ! empty($log_items)) {
-                    foreach($log_items as $item) {
-                        switch ($item->getChangeType())
-                        {
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CREATED:
-                            case \thebuggenie\core\entities\tables\Log::LOG_COMMENT:
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CLOSE:
-                                $changes[] = $i18n->__('Issue closed');
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REOPEN:
-                                $changes[] = $i18n->__('Issue reopened');
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_UPDATE:
-                                $changes[] = $converter->convert($item->getText());
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_BUG_TYPE:
-                                $changes[] = $i18n->__('Triaged bug type: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_LIKELIHOOD:
-                                $changes[] = $i18n->__('Triaged likelihood: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_EFFECT:
-                                $changes[] = $i18n->__('Triaged effect: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_CALCULATED:
-                                $changes[] = $i18n->__('Calculated user pain: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CATEGORY:
-                                $changes[] = $i18n->__('Category changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CUSTOMFIELD_CHANGED:
-                                $changes[] = $i18n->__('Custom field changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_STATUS:
-                                $changes[] = $i18n->__('Status changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REPRODUCABILITY:
-                                $changes[] = $i18n->__('Reproducability changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PRIORITY:
-                                $changes[] = $i18n->__('Priority changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_SEVERITY:
-                                $changes[] = $i18n->__('Severity changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_RESOLUTION:
-                                $changes[] = $i18n->__('Resolution changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PERCENT:
-                                $changes[] = $i18n->__('Percent completed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_MILESTONE:
-                                $changes[] = $i18n->__('Target milestone changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ISSUETYPE:
-                                $changes[] = $i18n->__('Issue type changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_ESTIMATED:
-                                $changes[] = $i18n->__('Estimation changed: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_SPENT:
-                                $changes[] = $i18n->__('Time spent: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ASSIGNED:
-                                $changes[] = $i18n->__('Assignee changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_OWNED:
-                                $changes[] = $i18n->__('Owner changed: %text', array('%text' => $item->getText()));
-                                break;
-                            case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_POSTED:
-                                $changes[] = $i18n->__('Posted by changed: %text', array('%text' => $item->getText()));
-                                break;
-                            default:
-                                if (!$item->getText())
-                                {
-                                    $changes[] = $i18n->__('Issue updated');
-                                }
-                                else
-                                {
-                                    $changes[] = $converter->convert($item->getText());
-                                }
-                                break;
-                        }
-                    }
-                }
+            // Whether there are no changes to post.
+            if (empty($changes)) {
+                return;
+            }
 
-                // Whether there are no changes to post.
-                if (empty($text) && empty($changes)) {
-                    return;
-                }
-
-                if ( ! empty($text)) {
-                    $text .= "  \n\n###[" . $i18n->__('Changes') . '](' . $issueLink . ")\n\n";
-                }
-
-                foreach ($changes as $change) {
-                    $text .= "\n  * " . $change;
-                }
+            foreach ($changes as $change) {
+                $text .= "\n  * " . $change;
             }
 
             $updated_by = $event->getParameter('updated_by');
 
             // Compose message.
             $attachment = (new MattermostAttachment())
-                ->fallback(empty($changes) ? $i18n->__('New comment') : $i18n->__('Issue changed'))
-                ->title( ! empty($commentContent) ? $i18n->__('Comment #%comment_no', ['%comment_no' => $comment->getCommentNumber()]) : $i18n->__('Changes'),  ! empty($commentLink) ? $commentLink : $issueLink)
+                ->fallback($i18n->__('Issue changed'))
+                ->title($i18n->__('Changes'), $issueLink)
                 ->text($text)
                 ->color('#66f');
 
