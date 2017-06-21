@@ -77,6 +77,7 @@
         protected function _initialize()
         {
             require THEBUGGENIE_MODULES_PATH . 'mattermost' . DS . 'vendor' . DS . 'autoload.php';
+            framework\Context::loadLibrary('ui');
 
             // Default settings.
             $this->_mattermost_config = [
