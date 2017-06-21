@@ -10,6 +10,7 @@ You can setup the integration on a per-project basis. The following events are s
 the time being:  
 
   * Creation of an issue
+  * Updating issue fields
   * Commenting to an issue
   * Creation of new releases
   
@@ -74,7 +75,6 @@ guides in the [Mattermost Developer Docs](https://docs.mattermost.com/developer/
 ### Planned Features
 
   * Add further issue fields to issue creation notice.
-  * Add issue fields/status change notices.
   * Add translation support for posting to Mattermost channels in a different
     language than en_US.
 
