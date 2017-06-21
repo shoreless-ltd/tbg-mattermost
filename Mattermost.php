@@ -258,7 +258,7 @@
             $log_items = $event->getParameter('log_items');
             $changes = [];
             if ( ! empty($log_items)) {
-                foreach($log_items as $log_item) {
+                foreach($log_items as $item) {
                     switch ($item->getChangeType())
                     {
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CREATED:
