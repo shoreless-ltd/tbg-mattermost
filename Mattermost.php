@@ -205,7 +205,7 @@
                 ->username($settings['username'])
                 ->iconUrl($settings['icon'])
                 ->text($i18n->__('%user created [%issue_no](%issue_link) in project [%project_name](%project_link)', [
-                    '%user' => ( ! empty($settings['link_names']) ? '@' : '') . $comment->getPostedBy()->getUsername(),
+                    '%user' => ( ! empty($settings['link_names']) ? '@' : '') . $issue->getPostedBy()->getUsername(),
                     '%issue_no' => $issueNo,
                     '%issue_link' => $issueLink,
                     '%project_name' => $issue->getProject()->getName(),
