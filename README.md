@@ -11,7 +11,7 @@ the time being:
 
   * Creation of an issue
   * Commenting to an issue
-  * Creation of new Releases
+  * Creation of new releases
   
 
 ## Requirements
@@ -31,7 +31,7 @@ REMARKS: Replace `thebuggenie` within the examples with your path to your The Bu
 Clone this repository either straight into a folder under `thebuggenie/modules/mattermost`,
 download the sources and extract them to `thebuggenie/modules/mattermost`, or symlink the
 sources to the same folder (IMPORTANT: The folder name under thebuggenie/modules MUST be
-`mattermost`, as The Bug Genie requires the module folder to match the module name):
+`mattermost`, as The Bug Genie requires the module folder to match the module name):  
 
 <pre>
 cd thebuggenie/modules
@@ -55,10 +55,10 @@ composer install
 
 ### 3: Activate the Module
 
-You can now enable the module from the configuration section in The Bug Genie.
+You can now enable the module from the configuration section in The Bug Genie.  
 
 
-### 4: The Bug Genie
+### 4: Per-Project Settings
 
 After activating the module, head over to the settings of the project you like
 to integrate into your Mattermost channel. Under '''Other Project Details >
@@ -66,10 +66,26 @@ Mattermost integration''' you can setup your Mattermost webhook URL and
 channel and decide which TBG events should be announced to your channel.  
 
 To create a webhook URL for your Mattermost team channel, please follow the
-guides in the [Mattermost Developer Docs](https://docs.mattermost.com/developer/webhooks-incoming.html#creating-integrations-using-incoming-webhooks).
+guides in the [Mattermost Developer Docs](https://docs.mattermost.com/developer/webhooks-incoming.html#creating-integrations-using-incoming-webhooks).  
 
 
-## Reporting issues
+## Roadmap
 
-If you find any issues, please report them in the issue tracker:
+### Planned Features
+
+  * Add further issue fields to issue creation notice.
+  * Add issue fields/status change notices.
+  * Add translation support for posting to Mattermost channels in a different
+    language than en_US.
+
+### Suggested Features
+
+  * _Add slash commands support to fetch issue details, or
+    trigger issue field updates and workflow transitions._
+
+
+## Reporting issues / feature requests
+
+If you find any issues or have a suggestion for further development, please
+report them in the GitHub issue tracker:  
 https://github.com/shoreless-ltd/tbg-mattermost/issues
