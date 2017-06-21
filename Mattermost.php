@@ -43,6 +43,7 @@
         const SETTING_PROJECT_POST_AS_NAME = 'project_post_to_channel_as_name_';
         const SETTING_PROJECT_POST_AS_LOGO = 'project_post_to_channel_as_logo_';
         const SETTING_PROJECT_POST_ON_NEW_ISSUES = 'project_post_to_channel_on_new_issues_';
+        const SETTING_PROJECT_POST_ON_CHANGE_ISSUES = 'project_post_to_channel_on_change_issues_';
         const SETTING_PROJECT_POST_ON_NEW_RELEASES = 'project_post_to_channel_on_new_releases_';
         const SETTING_PROJECT_POST_ON_NEW_COMMENT = 'project_post_to_channel_on_new_comment_';
 
@@ -210,6 +211,172 @@
                 ->text($i18n->__('%user created [%issue_no](%issue_link) in project [%project_name](%project_link)', [
                     '%user' => ( ! empty($settings['link_names']) ? '@' : '') . $issue->getPostedBy()->getUsername(),
                     '%issue_no' => $issueNo,
+                    '%issue_link' => $issueLink,
+                    '%project_name' => $issue->getProject()->getName(),
+                    '%project_link' => framework\Context::getRouting()->generate('project_dashboard', array('project_key' => $issue->getProject()->getKey()), false),
+                ]))
+                ->attachments([$attachment]);
+
+            // Post the message to Mattermost.
+            $client->send($message, $settings['url']);
+        }
+
+        /**
+         * Event listener for altered issues
+         *
+         * Posts to a Mattermost channel, if posting to Mattermost is enabled
+         * for the project.
+         *
+         * @param \thebuggenie\core\framework\Event $event
+         */
+        public function listen_issueSave(framework\Event $event)
+        {
+            $issue = $event->getSubject();
+            $project_id = $issue->getProjectID();
+
+            // Whether posting to Mattermost has been enabled.
+            if ( ! ($issue instanceof Issue && $this->isProjectIntegrationEnabled($project_id) && $this->doesPostOnChangeIssues($project_id))) {
+                return;
+            }
+            
+            // Get project specific settings.
+            $settings = $this->_getSettings($issue->getProject());
+
+            // Check for webhook URL.
+            if (empty($settings['url'])) {
+                return;
+            }
+
+            framework\Context::loadLibrary('common');
+            $i18n = $this->_getI18n($settings['language']);
+
+            // Mattermost client.
+            $client = new MattermostClient(new GuzzleClient());
+            $converter = new HtmlConverter(['strip_tags' => true]);
+
+            // Issue properties.
+            $log_items = $event->getParameter('log_items');
+            $changes = [];
+            if ( ! empty($log_items)) {
+                foreach($log_items as $log_item) {
+                    switch ($item->getChangeType())
+                    {
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CREATED:
+                        case \thebuggenie\core\entities\tables\Log::LOG_COMMENT:
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CLOSE:
+                            $changes[] = $i18n->__('Issue closed');
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REOPEN:
+                            $changes[] = $i18n->__('Issue reopened');
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_UPDATE:
+                            $changes[] = $converter->convert($item->getText());
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_BUG_TYPE:
+                            $changes[] = $i18n->__('Triaged bug type: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_LIKELIHOOD:
+                            $changes[] = $i18n->__('Triaged likelihood: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_EFFECT:
+                            $changes[] = $i18n->__('Triaged effect: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_CALCULATED:
+                            $changes[] = $i18n->__('Calculated user pain: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CATEGORY:
+                            $changes[] = $i18n->__('Category changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CUSTOMFIELD_CHANGED:
+                            $changes[] = $i18n->__('Custom field changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_STATUS:
+                            $changes[] = $i18n->__('Status changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REPRODUCABILITY:
+                            $changes[] = $i18n->__('Reproducability changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PRIORITY:
+                            $changes[] = $i18n->__('Priority changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_SEVERITY:
+                            $changes[] = $i18n->__('Severity changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_RESOLUTION:
+                            $changes[] = $i18n->__('Resolution changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PERCENT:
+                            $changes[] = $i18n->__('Percent completed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_MILESTONE:
+                            $changes[] = $i18n->__('Target milestone changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ISSUETYPE:
+                            $changes[] = $i18n->__('Issue type changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_ESTIMATED:
+                            $changes[] = $i18n->__('Estimation changed: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_SPENT:
+                            $changes[] = $i18n->__('Time spent: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ASSIGNED:
+                            $changes[] = $i18n->__('Assignee changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_OWNED:
+                            $changes[] = $i18n->__('Owner changed: %text', array('%text' => $item->getText()));
+                            break;
+                        case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_POSTED:
+                            $changes[] = $i18n->__('Posted by changed: %text', array('%text' => $item->getText()));
+                            break;
+                        default:
+                            if (!$item->getText())
+                            {
+                                $changes[] = $i18n->__('Issue updated');
+                            }
+                            else
+                            {
+                                $changes[] = $converter->convert($item->getText());
+                            }
+                            break;
+                    }
+                }
+            }
+
+            if (empty($changes)) {
+                return;
+            }
+
+            $text = '';
+            foreach ($changes as $change) {
+                $text .= "\n  * " . $change;
+            }
+
+            $issueNo = $issue->getFormattedIssueNo(true, true);
+            $issueLink = framework\Context::getRouting()->generate('viewissue', ['project_key' => $issue->getProject()->getKey(), 'issue_no' => $issue->getIssueNo()], false);
+            $comment = $event->getParameter('comment');
+            $updated_by = $event->getParameter('updated_by');
+
+            // Compose message.
+            $attachment = (new MattermostAttachment())
+                ->fallback($i18n->__('Issue changed'))
+                ->title($i18n->__('Changes'), $issueLink)
+                ->text($text)
+                ->success();
+
+            if ( ! empty($settings['attachment_include_user'])) {
+                $attachment->authorName($settings['username'])
+                    ->authorIcon($settings['icon']);
+            }
+
+            $message = (new MattermostMessage())
+                ->channel($settings['channel'])
+                ->username($settings['username'])
+                ->iconUrl($settings['icon'])
+                ->text($i18n->__('%user updated [%issue_no](%issue_link) in project [%project_name](%project_link)', [
+                    '%user' => ( ! empty($settings['link_names']) ? '@' : '') . $updated_by->getUsername(),
+                    '%issue_no' =>  '[' . $issueNo . '] ' . $issue->getTitle(),
                     '%issue_link' => $issueLink,
                     '%project_name' => $issue->getProject()->getName(),
                     '%project_link' => framework\Context::getRouting()->generate('project_dashboard', array('project_key' => $issue->getProject()->getKey()), false),
@@ -391,6 +558,7 @@
         protected function _addListeners()
         {
             framework\Event::listen('core', 'thebuggenie\core\entities\Issue::createNew', array($this, 'listen_issueCreate'));
+            framework\Event::listen('core', 'thebuggenie\core\entities\Issue::save', array($this, 'listen_issueSave'));
             framework\Event::listen('core', 'thebuggenie\core\entities\Comment::createNew', array($this, 'listen_commentCreate'));
             framework\Event::listen('core', 'thebuggenie\core\entities\Comment::_postSave', array($this, 'listen_commentCreate'));
             framework\Event::listen('core', 'thebuggenie\core\entities\Build::_postSave', array($this, 'listen_buildSave'));
@@ -510,6 +678,17 @@
             }
             else {
                 $setting = $this->getSetting(self::SETTING_PROJECT_POST_ON_NEW_ISSUES . $project_id);
+                return (isset($setting)) ? $setting : true;
+            }
+        }
+
+        public function doesPostOnChangeIssues($project_id, $value = null)
+        {
+            if ($value !== null) {
+                return $this->saveSetting(self::SETTING_PROJECT_POST_ON_CHANGE_ISSUES . $project_id, (bool) $value);
+            }
+            else {
+                $setting = $this->getSetting(self::SETTING_PROJECT_POST_ON_CHANGE_ISSUES . $project_id);
                 return (isset($setting)) ? $setting : true;
             }
         }

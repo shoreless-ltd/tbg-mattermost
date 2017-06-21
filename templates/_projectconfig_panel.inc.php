@@ -90,6 +90,19 @@
                         </td>
                     </tr>
                     <tr>
+                        <td><label for="mattermost_project_post_on_change_issues"><?= __('Post on issue changes'); ?></label></td>
+                        <td>
+                            <?php if ($access_level == \thebuggenie\core\framework\Settings::ACCESS_FULL): ?>
+                                <select name="<?= \thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_POST_ON_CHANGE_ISSUES; ?>" id="mattermost_project_post_on_change_issues" style="width: 70px;">
+                                    <option value=1<?php if ($module->doesPostOnChangeIssues($project->getID())): ?> selected<?php endif; ?>><?= __('Yes'); ?></option>
+                                    <option value=0<?php if (!$module->doesPostOnChangeIssues($project->getID())): ?> selected<?php endif; ?>><?= __('No'); ?></option>
+                                </select>
+                            <?php else: ?>
+                                <?= ($module->doesPostOnChangeIssues($project->getID())) ? __('Yes') : __('No'); ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
                         <td><label for="mattermost_project_post_on_new_comments"><?= __('Post on new comments'); ?></label></td>
                         <td>
                             <?php if ($access_level == \thebuggenie\core\framework\Settings::ACCESS_FULL): ?>
