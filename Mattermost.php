@@ -83,7 +83,7 @@
                 'username' => '',
                 'channel' => '',
                 'url' => '',
-                'icon' => 'https://tim.shoreless.limited/images/logo_48.png',
+                'icon' => image_url(framework\Settings::getHeaderIconUrl(), framework\Settings::isUsingCustomHeaderIcon(), 'core', false),
                 'link_names' => true,
                 'truncate_text' => 300,
                 'attachment_include_user' => false,
@@ -94,22 +94,24 @@
         /**
          * Return project specific Mattermost posting settings
          *
-         * @param int|Project $project_id
+         * @param Project $project
          *   The project object or a valid project ID.
          * @return array
          *   The project specific settings.
          */
-        protected function _getSettings($project_id)
+        protected function _getSettings($project)
         {
-            if ( ! is_numeric($project_id)) {
-                $project_id = $project->getID();
-            }
+            $project_id = $project->getID();
+
             $settings = $this->_mattermost_config;
 
             $settings['url'] = $this->getWebhookUrl($project_id);
             $settings['channel'] = $this->getChannelName($project_id);
             $settings['username'] = $this->getPostAsName($project_id);
             $settings['language'] = $this->getPostLanguage($project_id);
+            if ($this->getPostAsLogo($project_id) != 'thebuggenie') {
+                $settings['icon'] = image_url($project->getLargeIconName(), $project->hasLargeIcon(), 'core', false);
+            }
 
             return $settings;
         }
@@ -153,7 +155,7 @@
             }
             
             // Get project specific settings.
-            $settings = $this->_getSettings($project_id);
+            $settings = $this->_getSettings($issue->getProject());
 
             // Check for webhook URL.
             if (empty($settings['url'])) {
@@ -244,7 +246,7 @@
             }
 
             // Get project specific settings.
-            $settings = $this->_getSettings($project_id);
+            $settings = $this->_getSettings($issue->getProject());
 
             // Check for webhook URL.
             if (empty($settings['url'])) {
@@ -307,14 +309,15 @@
         public function listen_buildSave(framework\Event $event)
         {
             $release = $event->getSubject();
-            $project_id = $release->getProject()->getID();
+            $project = $release->getProject();
+            $project_id = $project->getID();
             
             if (! ($this->isProjectIntegrationEnabled($project_id) && $this->doesPostOnNewReleases($project_id))) {
                 return;
             }
 
             // Get project specific settings.
-            $settings = $this->_getSettings($project_id);
+            $settings = $this->_getSettings($project);
 
             // Check for webhook URL.
             if (empty($settings['url'])) {
@@ -351,7 +354,7 @@
 
             // Release data.
             $releaseName = $release->getName();
-            $releaseLink = framework\Context::getRouting()->generate('project_releases', ['project_key' => $release->getProject()->getKey()], false);
+            $releaseLink = framework\Context::getRouting()->generate('project_releases', ['project_key' => $project->getKey()], false);
 
             // Compose message.
             $attachment = (new MattermostAttachment())
@@ -372,8 +375,8 @@
                 ->text($i18n->__('New release [%release_name](%release_link) for project [%project_name](%project_link)', [
                     '%release_name' => $releaseName,
                     '%release_link' => $releaseLink,
-                    '%project_name' => $release->getProject()->getName(),
-                    '%project_link' => framework\Context::getRouting()->generate('project_dashboard', array('project_key' => $release->getProject()->getKey()), false),
+                    '%project_name' => $project->getName(),
+                    '%project_link' => framework\Context::getRouting()->generate('project_dashboard', array('project_key' => $project->getKey()), false),
                 ]))
                 ->attachments([$attachment]);
 
