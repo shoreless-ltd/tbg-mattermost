@@ -44,6 +44,7 @@
         const SETTING_PROJECT_POST_AS_LOGO = 'project_post_to_channel_as_logo_';
         const SETTING_PROJECT_POST_ON_NEW_ISSUES = 'project_post_to_channel_on_new_issues_';
         const SETTING_PROJECT_POST_ON_CHANGE_ISSUES = 'project_post_to_channel_on_change_issues_';
+        const SETTING_PROJECT_POST_ISSUE_CHANGES = 'project_post_issue_changes_';
         const SETTING_PROJECT_POST_ON_NEW_RELEASES = 'project_post_to_channel_on_new_releases_';
         const SETTING_PROJECT_POST_ON_NEW_COMMENT = 'project_post_to_channel_on_new_comment_';
 
@@ -261,6 +262,7 @@
 
             $log_items = $event->getParameter('log_items');
             $changes = [];
+            $enabledChanges = $this->getEnabledIssueChanges($project_id);
             if ( ! empty($log_items)) {
                 foreach($log_items as $item) {
                     switch ($item->getChangeType())
@@ -269,79 +271,125 @@
                         case \thebuggenie\core\entities\tables\Log::LOG_COMMENT:
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CLOSE:
-                            $changes[] = $i18n->__('Issue closed');
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_CLOSE, $enabledChanges)) {
+                                $changes[] = $i18n->__('Issue closed');
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REOPEN:
-                            $changes[] = $i18n->__('Issue reopened');
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_REOPEN, $enabledChanges)) {
+                                $changes[] = $i18n->__('Issue reopened');
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_UPDATE:
-                            $changes[] = $converter->convert($item->getText());
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_UPDATE, $enabledChanges)) {
+                                $changes[] = $converter->convert($item->getText());
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_BUG_TYPE:
-                            $changes[] = $i18n->__('Triaged bug type: %text', array('%text' => $item->getText()));
+                            if (in_array('others', $enabledChanges)) {
+                                $changes[] = $i18n->__('Triaged bug type: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_LIKELIHOOD:
-                            $changes[] = $i18n->__('Triaged likelihood: %text', array('%text' => $item->getText()));
+                            if (in_array('others', $enabledChanges)) {
+                                $changes[] = $i18n->__('Triaged likelihood: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_EFFECT:
-                            $changes[] = $i18n->__('Triaged effect: %text', array('%text' => $item->getText()));
+                            if (in_array('others', $enabledChanges)) {
+                                $changes[] = $i18n->__('Triaged effect: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PAIN_CALCULATED:
-                            $changes[] = $i18n->__('Calculated user pain: %text', array('%text' => $item->getText()));
+                            if (in_array('others', $enabledChanges)) {
+                                $changes[] = $i18n->__('Calculated user pain: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CATEGORY:
-                            $changes[] = $i18n->__('Category changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_CATEGORY, $enabledChanges)) {
+                                $changes[] = $i18n->__('Category changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CUSTOMFIELD_CHANGED:
-                            $changes[] = $i18n->__('Custom field changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_CUSTOMFIELD_CHANGED, $enabledChanges)) {
+                                $changes[] = $i18n->__('Custom field changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_STATUS:
-                            $changes[] = $i18n->__('Status changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_STATUS, $enabledChanges)) {
+                                $changes[] = $i18n->__('Status changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REPRODUCABILITY:
-                            $changes[] = $i18n->__('Reproducability changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_REPRODUCABILITY, $enabledChanges)) {
+                                $changes[] = $i18n->__('Reproducability changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PRIORITY:
-                            $changes[] = $i18n->__('Priority changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_PRIORITY, $enabledChanges)) {
+                                $changes[] = $i18n->__('Priority changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_SEVERITY:
-                            $changes[] = $i18n->__('Severity changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_SEVERITY, $enabledChanges)) {
+                                $changes[] = $i18n->__('Severity changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_RESOLUTION:
-                            $changes[] = $i18n->__('Resolution changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_RESOLUTION, $enabledChanges)) {
+                                $changes[] = $i18n->__('Resolution changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PERCENT:
-                            $changes[] = $i18n->__('Percent completed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_PERCENT, $enabledChanges)) {
+                                $changes[] = $i18n->__('Percent completed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_MILESTONE:
-                            $changes[] = $i18n->__('Target milestone changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_MILESTONE, $enabledChanges)) {
+                                $changes[] = $i18n->__('Target milestone changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ISSUETYPE:
-                            $changes[] = $i18n->__('Issue type changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_ISSUETYPE, $enabledChanges)) {
+                                $changes[] = $i18n->__('Issue type changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_ESTIMATED:
-                            $changes[] = $i18n->__('Estimation changed: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_ESTIMATED, $enabledChanges)) {
+                                $changes[] = $i18n->__('Estimation changed: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_SPENT:
-                            $changes[] = $i18n->__('Time spent: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_SPENT, $enabledChanges)) {
+                                $changes[] = $i18n->__('Time spent: %text', array('%text' => \thebuggenie\core\entities\common\Timeable::formatTimeableLog($item->getText(), $item->getPreviousValue(), $item->getCurrentValue(), true, true)));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ASSIGNED:
-                            $changes[] = $i18n->__('Assignee changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_ASSIGNED, $enabledChanges)) {
+                                $changes[] = $i18n->__('Assignee changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_OWNED:
-                            $changes[] = $i18n->__('Owner changed: %text', array('%text' => $item->getText()));
+                            if (in_array(\thebuggenie\core\entities\tables\Log::LOG_ISSUE_OWNED, $enabledChanges)) {
+                                $changes[] = $i18n->__('Owner changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         case \thebuggenie\core\entities\tables\Log::LOG_ISSUE_POSTED:
-                            $changes[] = $i18n->__('Posted by changed: %text', array('%text' => $item->getText()));
+                            if (in_array('others', $enabledChanges)) {
+                                $changes[] = $i18n->__('Posted by changed: %text', array('%text' => $item->getText()));
+                            }
                             break;
                         default:
-                            if (!$item->getText())
-                            {
-                                $changes[] = $i18n->__('Issue updated');
-                            }
-                            else
-                            {
-                                $changes[] = $converter->convert($item->getText());
+                            if (in_array('others', $enabledChanges)) {
+                                if (!$item->getText())
+                                {
+                                    $changes[] = $i18n->__('Issue updated');
+                                }
+                                else
+                                {
+                                    $changes[] = $converter->convert($item->getText());
+                                }
                             }
                             break;
                     }
@@ -648,6 +696,17 @@
         public function setPostAsName($project_id, $name)
         {
             return $this->saveSetting(self::SETTING_PROJECT_POST_AS_NAME . $project_id, $name);
+        }
+
+        public function getEnabledIssueChanges($project_id)
+        {
+            $setting = $this->getSetting(self::SETTING_PROJECT_POST_ISSUE_CHANGES . $project_id);
+            return ! empty($setting) ? explode(',', $setting) : [];
+        }
+
+        public function setEnabledIssueChanges($project_id, $changes)
+        {
+            return $this->saveSetting(self::SETTING_PROJECT_POST_ISSUE_CHANGES . $project_id, implode(',', $changes));
         }
 
         public function getPostLanguage($project_id)

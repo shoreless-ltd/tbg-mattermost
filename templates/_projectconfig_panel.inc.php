@@ -119,6 +119,62 @@
                             <?php endif; ?>
                         </td>
                     </tr>
+                    <tr id="mattermost_project_post_issue_changes"<?= ($module->doesPostOnChangeIssues($project->getID())) ? '' : ' style="display:none;"'; ?>>
+                        <?php $changes = $module->getEnabledIssueChanges($project->getID()); ?>
+                        <td valign="top"><label><?= __('Issue changes to report') ?></label></td>
+                        <td>
+                            <?php if ($access_level == \thebuggenie\core\framework\Settings::ACCESS_FULL): ?>
+                                <?php foreach([
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ISSUETYPE => __('Issue type changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_UPDATE => __('Issue update'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ASSIGNED => __('Assignee changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_STATUS => __('Status changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_OWNED => __('Owner changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REPRODUCABILITY => __('Reproducability changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CLOSE => __('Closed issue'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REOPEN => __('Reopened issue'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CATEGORY => __('Category changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PRIORITY => __('Priority changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_SEVERITY => __('Severity changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_RESOLUTION => __('Resolution changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PERCENT => __('Percent completed changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_MILESTONE => __('Target milestone changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_ESTIMATED => __('Estimation changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_SPENT => __('Time spent changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CUSTOMFIELD_CHANGED => __('Custom field changed'),
+                                    'others' => __('All other changes'),
+                                ] as $key => $value): ?>
+                                    <label><input type="checkbox" name="<?= \thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_POST_ISSUE_CHANGES; ?>[]" value="<?= $key; ?>"<?= in_array($key, $changes) ? ' checked' : ''; ?>> <?= $value; ?></label><br />
+                                <?php endforeach; ?>
+                                <a href="javascript:;" id="mattermost_project_post_issue_changes_toggle"><?= __('Toggle all') ?></a>
+                            <?php else: ?>
+                                <?php $isFirst = true; ?>
+                                <?php foreach([
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ISSUETYPE => __('Issue type changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_UPDATE => __('Issue update'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_ASSIGNED => __('Assignee changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_STATUS => __('Status changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_OWNED => __('Owner changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REPRODUCABILITY => __('Reproducability changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CLOSE => __('Closed issue'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_REOPEN => __('Reopened issue'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CATEGORY => __('Category changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PRIORITY => __('Priority changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_SEVERITY => __('Severity changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_RESOLUTION => __('Resolution changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_PERCENT => __('Percent completed changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_MILESTONE => __('Target milestone changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_ESTIMATED => __('Estimation changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_TIME_SPENT => __('Time spent changed'),
+                                    \thebuggenie\core\entities\tables\Log::LOG_ISSUE_CUSTOMFIELD_CHANGED => __('Custom field changed'),
+                                    'others' => __('All other changes'),
+                                ] as $key => $value): ?>
+                                    <?= in_array($key, $changes) ? ($isFirst ? $value : ', ' . $value) : ''; ?>
+                                    <?php $isFirst = false; ?>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
                     <tr>
                         <td><label for="mattermost_project_post_on_new_comments"><?= __('Post on new comments'); ?></label></td>
                         <td>

@@ -37,6 +37,8 @@ class Main extends framework\Action {
             $module->setPostLanguage($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_CHANNEL_LANGUAGE]);
             $module->setProjectIntegrationEnabled($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_INTEGRATION_ENABLED]);
             $module->doesPostOnNewIssues($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_POST_ON_NEW_ISSUES]);
+            $module->doesPostOnChangeIssues($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_POST_ON_CHANGE_ISSUES]);
+            $module->setEnabledIssueChanges($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_POST_ISSUE_CHANGES]);
             $module->doesPostOnNewReleases($project_id, $request[\thebuggenie\modules\mattermost\Mattermost::SETTING_PROJECT_POST_ON_NEW_RELEASES]);
 
             return $this->renderJSON(array('failed' => false, 'message' => framework\Context::getI18n()->__('Settings saved')));

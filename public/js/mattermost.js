@@ -46,5 +46,17 @@ require(['domReady', 'thebuggenie/tbg', 'jquery'], function (domReady, tbgjs, $)
             $('#mattermost_address_container').removeClass('verified');
             $('#mattermost_webhook_url_input').attr('disabled', false);
         })
+        $('#mattermost_project_post_on_change_issues').on('change', function(e){
+            if ($(this).val() == "0") {
+                $('#mattermost_project_post_issue_changes').hide();
+            }
+            else {
+                $('#mattermost_project_post_issue_changes').show();
+            }
+        });
+        $('#mattermost_project_post_issue_changes_toggle').on('click', function(e){
+            var $checkboxes = $(this).parent().find("input[type='checkbox']");
+            $checkboxes.prop('checked', ! ($(this).parent().find("input[type='checkbox']:checked").length > 0));
+        });
     });
 });

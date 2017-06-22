@@ -70,19 +70,6 @@ To create a webhook URL for your Mattermost team channel, please follow the
 guides in the [Mattermost Developer Docs](https://docs.mattermost.com/developer/webhooks-incoming.html#creating-integrations-using-incoming-webhooks).  
 
 
-## Roadmap
-
-### Planned Features
-
-  * Add further issue fields to issue creation notice.
-
-
-### Suggested Features
-
-  * _Add slash commands support to fetch issue details, or
-    trigger issue field updates and workflow transitions._
-
-
 ## Reporting issues / feature requests
 
 If you find any issues or have a suggestion for further development, please
